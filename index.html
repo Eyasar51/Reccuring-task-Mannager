@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recurring Task Manager</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Recurring Task Manager</h1>
+        <p>Track simple recurring tasks and mark each occurrence complete.</p>
+      </header>
+
+      <section class="card">
+        <h2>Add Task</h2>
+        <form id="task-form" class="task-form">
+          <label>
+            Task name
+            <input id="task-name" name="task-name" type="text" placeholder="Drink water" required />
+          </label>
+
+          <label>
+            Repeat every
+            <div class="inline-fields">
+              <input id="task-interval" name="task-interval" type="number" min="1" value="1" required />
+              <select id="task-unit" name="task-unit">
+                <option value="day">Day(s)</option>
+                <option value="week">Week(s)</option>
+                <option value="month">Month(s)</option>
+              </select>
+            </div>
+          </label>
+
+          <button type="submit">Add Task</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Your Tasks</h2>
+        <p id="empty-state">No recurring tasks yet. Add one above.</p>
+        <ul id="task-list" class="task-list"></ul>
+      </section>
+    </main>
+
+    <template id="task-item-template">
+      <li class="task-item">
+        <div class="task-item-main">
+          <h3 class="task-title"></h3>
+          <p class="task-meta"></p>
+          <p class="task-next"></p>
+        </div>
+        <div class="task-item-actions">
+          <button class="complete-btn" type="button">Mark complete</button>
+          <button class="delete-btn" type="button">Delete</button>
+        </div>
+      </li>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
