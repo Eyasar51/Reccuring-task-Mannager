@@ -10,8 +10,32 @@
     <main class="container">
       <header>
         <h1>Recurring Task Manager</h1>
-        <p>Track simple recurring tasks and mark each occurrence complete.</p>
+        <p>Track recurring tasks and sync them across devices with a shared sync key.</p>
       </header>
+
+      <section class="card">
+        <h2>Cloud Sync (Optional)</h2>
+        <form id="sync-form" class="task-form">
+          <label>
+            Supabase URL
+            <input id="supabase-url" type="url" placeholder="https://YOUR-PROJECT.supabase.co" />
+          </label>
+          <label>
+            Supabase anon key
+            <input id="supabase-anon-key" type="password" placeholder="ey..." />
+          </label>
+          <label>
+            Your sync key (use same on every device)
+            <input id="sync-key" type="text" placeholder="my-family-key" />
+          </label>
+          <div class="inline-buttons">
+            <button type="submit">Save Sync Settings</button>
+            <button id="disable-sync-btn" type="button" class="secondary-btn">Use Local Only</button>
+            <button id="pull-now-btn" type="button" class="secondary-btn">Pull From Cloud</button>
+          </div>
+        </form>
+        <p id="sync-status" class="status-text">Sync disabled (local only).</p>
+      </section>
 
       <section class="card">
         <h2>Add Task</h2>
