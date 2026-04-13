@@ -36,6 +36,17 @@ header p {
   margin-top: 1rem;
 }
 
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.section-header h2 {
+  margin: 0;
+}
+
 .task-form {
   display: grid;
   gap: 0.8rem;
@@ -95,7 +106,7 @@ button {
 
 .task-list {
   list-style: none;
-  margin: 0;
+  margin: 1rem 0 0;
   padding: 0;
   display: grid;
   gap: 0.7rem;
@@ -140,10 +151,16 @@ button {
 
 #empty-state {
   color: #6b7280;
+  margin-top: 1rem;
 }
 
 @media (max-width: 640px) {
   .task-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .section-header {
     flex-direction: column;
     align-items: flex-start;
   }
