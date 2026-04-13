@@ -10,46 +10,52 @@
     <main class="container">
       <header>
         <h1>Recurring Task Manager</h1>
-        <p>Track recurring tasks and sync them across devices with a shared sync key.</p>
+        <p>Sign in to sync your recurring tasks across devices.</p>
       </header>
 
-      <section class="card">
-        <h2>Cloud Sync (Optional)</h2>
-        <form id="sync-form" class="task-form">
-          <label>
-            Supabase URL
-            <input id="supabase-url" type="url" placeholder="https://YOUR-PROJECT.supabase.co" />
-          </label>
-          <label>
-            Supabase anon key
-            <input id="supabase-anon-key" type="password" placeholder="ey..." />
-          </label>
-          <label>
-            Your sync key (use same on every device)
-            <input id="sync-key" type="text" placeholder="my-family-key" />
-          </label>
-          <div class="inline-buttons">
-            <button type="submit">Save Sync Settings</button>
-            <button id="disable-sync-btn" type="button" class="secondary-btn">Use Local Only</button>
-            <button id="pull-now-btn" type="button" class="secondary-btn">Pull From Cloud</button>
-          </div>
-        </form>
-        <p id="sync-status" class="status-text">Sync disabled (local only).</p>
+      <section class="card" id="config-warning" hidden>
+        <h2>Setup needed</h2>
+        <p>
+          Add your Supabase URL and anon key in <code>app.js</code> before using auth and cloud sync.
+        </p>
       </section>
 
-      <section class="card">
-        <h2>Add Task</h2>
+      <section class="card" id="auth-card">
+        <h2>Account</h2>
+        <form id="auth-form" class="task-form">
+          <label>
+            Email
+            <input id="auth-email" type="email" autocomplete="email" required />
+          </label>
+          <label>
+            Password
+            <input id="auth-password" type="password" autocomplete="current-password" required minlength="6" />
+          </label>
+          <div class="inline-buttons">
+            <button type="submit" data-action="login">Log in</button>
+            <button type="button" data-action="signup" class="secondary-btn">Sign up</button>
+          </div>
+        </form>
+        <p id="auth-status" class="status-text">Not logged in.</p>
+      </section>
+
+      <section class="card" id="task-section" hidden>
+        <div class="section-header">
+          <h2>Your Tasks</h2>
+          <button id="logout-btn" type="button" class="secondary-btn">Log out</button>
+        </div>
+
         <form id="task-form" class="task-form">
           <label>
             Task name
-            <input id="task-name" name="task-name" type="text" placeholder="Drink water" required />
+            <input id="task-name" type="text" placeholder="Drink water" required />
           </label>
 
           <label>
             Repeat every
             <div class="inline-fields">
-              <input id="task-interval" name="task-interval" type="number" min="1" value="1" required />
-              <select id="task-unit" name="task-unit">
+              <input id="task-interval" type="number" min="1" value="1" required />
+              <select id="task-unit">
                 <option value="day">Day(s)</option>
                 <option value="week">Week(s)</option>
                 <option value="month">Month(s)</option>
@@ -59,10 +65,7 @@
 
           <button type="submit">Add Task</button>
         </form>
-      </section>
 
-      <section class="card">
-        <h2>Your Tasks</h2>
         <p id="empty-state">No recurring tasks yet. Add one above.</p>
         <ul id="task-list" class="task-list"></ul>
       </section>
@@ -82,6 +85,7 @@
       </li>
     </template>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
   </body>
 </html>
