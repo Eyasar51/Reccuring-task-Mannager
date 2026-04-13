@@ -1,56 +1,70 @@
 # Recurring Task Manager
 
-A lightweight recurring-task web app that can sync across devices using Supabase.
+A recurring task app with Supabase Auth so users can log in and sync tasks across devices.
 
 ## Features
 
-- Add recurring tasks (days, weeks, months)
-- Mark a task complete and auto-calculate the next due date
-- Delete tasks
-- Local storage fallback
-- Optional cloud sync across devices using a shared sync key
+- Email/password sign up and login
+- Per-user task data (private by user account)
+- Add, complete, and delete recurring tasks
+- Day/week/month recurrence with next-due date calculation
 
-## 1) Supabase setup (for cross-device sync)
+## 1) Supabase setup
 
-Create a project in Supabase, then run this SQL in the SQL editor:
+Create a Supabase project.
+
+### Table + RLS SQL
+
+Run this in Supabase SQL editor:
 
 ```sql
-create table if not exists recurring_tasks (
+create table if not exists public.recurring_tasks (
   id text primary key,
-  sync_key text not null,
+  user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
-  interval integer not null,
+  interval integer not null check (interval > 0),
   unit text not null check (unit in ('day', 'week', 'month')),
   last_completed_at timestamptz,
   created_at timestamptz not null default now()
 );
 
-alter table recurring_tasks enable row level security;
+alter table public.recurring_tasks enable row level security;
 
-create policy "Allow public read/write with sync key"
-on recurring_tasks
-for all
-using (true)
-with check (true);
+create policy "Users can read their own tasks"
+on public.recurring_tasks
+for select
+using (auth.uid() = user_id);
+
+create policy "Users can insert their own tasks"
+on public.recurring_tasks
+for insert
+with check (auth.uid() = user_id);
+
+create policy "Users can update their own tasks"
+on public.recurring_tasks
+for update
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "Users can delete their own tasks"
+on public.recurring_tasks
+for delete
+using (auth.uid() = user_id);
 ```
 
-> Note: This is intentionally simple for MVP use. For production security, replace with real user auth + strict RLS policies.
+## 2) Add Supabase credentials to the app
 
-## 2) Run locally
+Open `app.js` and set:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+
+You can find both in **Supabase Dashboard -> Settings -> API**.
+
+## 3) Run locally
 
 ```bash
 python -m http.server 8000
 ```
 
-Open <http://localhost:8000>.
-
-## 3) Enable sync in the app
-
-In the app UI, fill:
-
-- Supabase URL
-- Supabase anon key
-- Sync key (same value on all devices)
-
-Then click **Save Sync Settings**.
-
+Then open <http://localhost:8000>.
