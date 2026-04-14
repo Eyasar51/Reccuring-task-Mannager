@@ -1,19 +1,14 @@
 const SUPABASE_URL = "https://lekspilvezepmyotpqaj.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_i25IodSkGj123-iLtzHt-w_JHAiuxLU";
 
-const authForm = document.getElementById("auth-form");
-const authEmailInput = document.getElementById("auth-email");
-const authPasswordInput = document.getElementById("auth-password");
-const authStatus = document.getElementById("auth-status");
-const authCard = document.getElementById("auth-card");
-const configWarning = document.getElementById("config-warning");
-const taskSection = document.getElementById("task-section");
 const logoutButton = document.getElementById("logout-btn");
+const userEmail = document.getElementById("user-email");
 
 const taskForm = document.getElementById("task-form");
 const taskNameInput = document.getElementById("task-name");
 const taskIntervalInput = document.getElementById("task-interval");
 const taskUnitInput = document.getElementById("task-unit");
+const taskCount = document.getElementById("task-count");
 const taskList = document.getElementById("task-list");
 const emptyState = document.getElementById("empty-state");
 const itemTemplate = document.getElementById("task-item-template");
@@ -27,50 +22,41 @@ let tasks = [];
 bootstrap();
 
 async function bootstrap() {
-  const hasConfig = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
-
-  if (!hasConfig) {
-    configWarning.hidden = false;
-    authCard.hidden = true;
-    taskSection.hidden = true;
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    window.location.replace("login.html");
     return;
   }
 
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  bindAuthEvents();
-  bindTaskEvents();
-
   const { data } = await supabaseClient.auth.getSession();
-  await handleSession(data.session);
 
-  supabaseClient.auth.onAuthStateChange(async (_event, session) => {
-    await handleSession(session);
+  if (!data.session?.user) {
+    window.location.replace("login.html");
+    return;
+  }
+
+  currentUser = data.session.user;
+  userEmail.textContent = currentUser.email || "Logged in";
+
+  bindEvents();
+  await loadTasks();
+
+  supabaseClient.auth.onAuthStateChange((_event, session) => {
+    if (!session?.user) {
+      window.location.replace("login.html");
+    }
   });
 }
 
-function bindAuthEvents() {
-  authForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    await login();
-  });
-
-  authForm.querySelector("[data-action='signup']").addEventListener("click", async () => {
-    await signup();
-  });
-
+function bindEvents() {
   logoutButton.addEventListener("click", async () => {
     await supabaseClient.auth.signOut();
+    window.location.replace("login.html");
   });
-}
 
-function bindTaskEvents() {
   taskForm.addEventListener("submit", async (event) => {
     event.preventDefault();
-
-    if (!currentUser) {
-      return;
-    }
 
     const name = taskNameInput.value.trim();
     const interval = Number(taskIntervalInput.value);
@@ -80,101 +66,27 @@ function bindTaskEvents() {
       return;
     }
 
-    const nowIso = new Date().toISOString();
-    const newTask = {
+    const { error } = await supabaseClient.from("recurring_tasks").insert({
       id: crypto.randomUUID(),
       user_id: currentUser.id,
       name,
       interval,
       unit,
       last_completed_at: null,
-      created_at: nowIso,
-    };
+      created_at: new Date().toISOString(),
+    });
 
-    const { error } = await supabaseClient.from("recurring_tasks").insert(newTask);
-
-    if (error) {
-      updateAuthStatus(`Failed to add task: ${error.message}`);
-      return;
+    if (!error) {
+      taskForm.reset();
+      taskIntervalInput.value = "1";
+      taskUnitInput.value = "day";
+      taskNameInput.focus();
+      await loadTasks();
     }
-
-    taskForm.reset();
-    taskIntervalInput.value = "1";
-    taskUnitInput.value = "day";
-    taskNameInput.focus();
-
-    await loadTasks();
   });
 }
 
-async function signup() {
-  const email = authEmailInput.value.trim();
-  const password = authPasswordInput.value;
-
-  if (!email || password.length < 6) {
-    updateAuthStatus("Use a valid email and password (min 6 chars).");
-    return;
-  }
-
-  updateAuthStatus("Creating account...");
-
-  const { error } = await supabaseClient.auth.signUp({ email, password });
-
-  if (error) {
-    updateAuthStatus(`Sign up failed: ${error.message}`);
-    return;
-  }
-
-  updateAuthStatus("Account created. Check your email if confirmation is enabled, then log in.");
-}
-
-async function login() {
-  const email = authEmailInput.value.trim();
-  const password = authPasswordInput.value;
-
-  if (!email || password.length < 6) {
-    updateAuthStatus("Use a valid email and password (min 6 chars).");
-    return;
-  }
-
-  updateAuthStatus("Logging in...");
-
-  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-  if (error) {
-    updateAuthStatus(`Login failed: ${error.message}`);
-    return;
-  }
-
-  updateAuthStatus("Logged in.");
-}
-
-async function handleSession(session) {
-  currentUser = session?.user ?? null;
-
-  if (!currentUser) {
-    tasks = [];
-    renderTasks();
-    taskSection.hidden = true;
-    authCard.hidden = false;
-    updateAuthStatus("Not logged in.");
-    return;
-  }
-
-  authCard.hidden = false;
-  taskSection.hidden = false;
-  updateAuthStatus(`Logged in as ${currentUser.email}`);
-
-  await loadTasks();
-}
-
 async function loadTasks() {
-  if (!currentUser) {
-    tasks = [];
-    renderTasks();
-    return;
-  }
-
   const { data, error } = await supabaseClient
     .from("recurring_tasks")
     .select("id,name,interval,unit,last_completed_at,created_at")
@@ -182,7 +94,6 @@ async function loadTasks() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    updateAuthStatus(`Could not load tasks: ${error.message}`);
     return;
   }
 
@@ -201,6 +112,7 @@ async function loadTasks() {
 function renderTasks() {
   taskList.innerHTML = "";
   emptyState.style.display = tasks.length ? "none" : "block";
+  taskCount.textContent = `${tasks.length} task${tasks.length === 1 ? "" : "s"}`;
 
   for (const task of tasks) {
     const node = itemTemplate.content.firstElementChild.cloneNode(true);
@@ -209,53 +121,21 @@ function renderTasks() {
     node.querySelector(".task-next").textContent = `Next due: ${formatDate(calculateNextDueDate(task))}`;
 
     node.querySelector(".complete-btn").addEventListener("click", async () => {
-      await markComplete(task.id);
+      await supabaseClient
+        .from("recurring_tasks")
+        .update({ last_completed_at: new Date().toISOString() })
+        .eq("id", task.id)
+        .eq("user_id", currentUser.id);
+      await loadTasks();
     });
 
     node.querySelector(".delete-btn").addEventListener("click", async () => {
-      await deleteTask(task.id);
+      await supabaseClient.from("recurring_tasks").delete().eq("id", task.id).eq("user_id", currentUser.id);
+      await loadTasks();
     });
 
     taskList.appendChild(node);
   }
-}
-
-async function markComplete(taskId) {
-  if (!currentUser) {
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("recurring_tasks")
-    .update({ last_completed_at: new Date().toISOString() })
-    .eq("id", taskId)
-    .eq("user_id", currentUser.id);
-
-  if (error) {
-    updateAuthStatus(`Could not update task: ${error.message}`);
-    return;
-  }
-
-  await loadTasks();
-}
-
-async function deleteTask(taskId) {
-  if (!currentUser) {
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("recurring_tasks")
-    .delete()
-    .eq("id", taskId)
-    .eq("user_id", currentUser.id);
-
-  if (error) {
-    updateAuthStatus(`Could not delete task: ${error.message}`);
-    return;
-  }
-
-  await loadTasks();
 }
 
 function calculateNextDueDate(task) {
@@ -279,8 +159,4 @@ function formatDate(date) {
     month: "short",
     day: "numeric",
   });
-}
-
-function updateAuthStatus(message) {
-  authStatus.textContent = message;
 }
