@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | Recurring Task Manager</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="auth-shell">
+    <main class="auth-layout">
+      <section class="auth-brand">
+        <p class="eyebrow">Welcome back</p>
+        <h1>Recurring Task Manager</h1>
+        <p>
+          Sign in to access your recurring tasks from any device.
+        </p>
+      </section>
+
+      <section class="card auth-card">
+        <h2>Sign in</h2>
+        <form id="auth-form" class="task-form">
+          <label>
+            Email
+            <input id="auth-email" type="email" autocomplete="email" required />
+          </label>
+          <label>
+            Password
+            <input id="auth-password" type="password" autocomplete="current-password" required minlength="6" />
+          </label>
+          <div class="inline-buttons">
+            <button type="submit">Log in</button>
+            <button id="signup-btn" type="button" class="secondary-btn">Sign up</button>
+          </div>
+        </form>
+        <p id="auth-status" class="status-text">Use your account to continue.</p>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+  </body>
+</html>
