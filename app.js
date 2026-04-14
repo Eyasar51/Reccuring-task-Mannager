@@ -1,5 +1,5 @@
-const SUPABASE_URL = ""; // e.g. https://YOUR-PROJECT.supabase.co
-const SUPABASE_ANON_KEY = ""; // Project Settings -> API -> anon/public key
+const SUPABASE_URL = "https://lekspilvezepmyotpqaj.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_i25IodSkGj123-iLtzHt-w_JHAiuxLU";
 
 const authForm = document.getElementById("auth-form");
 const authEmailInput = document.getElementById("auth-email");
