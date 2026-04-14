@@ -1,9 +1,10 @@
 # Recurring Task Manager
 
-A recurring task app with Supabase Auth so users can log in and sync tasks across devices.
+A recurring task app with Supabase Auth so users can log in on a dedicated login page and sync tasks across devices.
 
 ## Features
 
+- Separate login page (`login.html`) and task dashboard page (`index.html`)
 - Email/password sign up and login
 - Per-user task data (private by user account)
 - Add, complete, and delete recurring tasks
@@ -54,12 +55,12 @@ using (auth.uid() = user_id);
 
 ## 2) Add Supabase credentials to the app
 
-Open `app.js` and set:
+Open both files and set:
 
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
+- `auth.js` -> `SUPABASE_URL`, `SUPABASE_ANON_KEY`
+- `app.js` -> `SUPABASE_URL`, `SUPABASE_ANON_KEY`
 
-You can find both in **Supabase Dashboard -> Settings -> API**.
+You can find values in **Supabase Dashboard -> Settings -> API Keys**.
 
 ## 3) Run locally
 
@@ -67,4 +68,4 @@ You can find both in **Supabase Dashboard -> Settings -> API**.
 python -m http.server 8000
 ```
 
-Then open <http://localhost:8000>.
+Then open <http://localhost:8000/login.html>.
